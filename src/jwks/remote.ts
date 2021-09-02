@@ -59,6 +59,41 @@ export interface RemoteJWKSetOptions {
    * when used outside of Node.js runtime.
    */
   agent?: any
+
+  /**
+   * A string indicating whether credentials will be sent with the request always, never, or only when sent to a same-origin URL. Sets request's credentials.
+   */
+  credentials?: 'include' | 'omit' | 'same-origin';
+
+  /**
+   * A Headers object, an object literal, or an array of two-item arrays to set request's headers.
+   */
+  headers?: string[][] | Record<string, string>
+
+  /**
+   * A string to set request's method.
+   */
+  method?: string;
+
+  /**
+   * A string to indicate whether the request will use CORS, or will be restricted to same-origin URLs. Sets request's mode.
+   */
+  mode?: 'cors' | 'navigate' | 'no-cors' | 'same-origin';
+
+  /**
+   * A string indicating whether request follows redirects, results in an error upon encountering a redirect, or returns the redirect (in an opaque fashion). Sets request's redirect.
+   */
+  redirect?: 'error' | 'follow' | 'manual';
+
+  /**
+   * A string whose value is a same-origin URL, "about:client", or the empty string, to set request's referrer.
+   */
+  referrer?: string;
+  
+  /**
+   * A referrer policy to set request's referrerPolicy.
+   */
+  referrerPolicy?: '' | 'same-origin' | 'no-referrer' | 'no-referrer-when-downgrade' | 'origin' | 'origin-when-cross-origin' | 'strict-origin' | 'strict-origin-when-cross-origin' | 'unsafe-url';
 }
 
 function isJWKLike(key: unknown): key is JWK {
@@ -80,14 +115,33 @@ class RemoteJWKSet {
 
   private _pendingFetch?: Promise<unknown>
 
-  private _options: Pick<RemoteJWKSetOptions, 'agent'>
+  private _options: Pick<RemoteJWKSetOptions, 
+      'agent'
+      |'credentials'
+      |'redirect'
+      |'referrer'
+      |'referrerPolicy'
+      |'method' 
+      |'mode' 
+      |'headers'
+    >
 
   constructor(url: URL, options?: RemoteJWKSetOptions) {
     if (!(url instanceof URL)) {
       throw new TypeError('url must be an instance of URL')
     }
     this._url = new URL(url.href)
-    this._options = { agent: options?.agent }
+    this._options = {
+      agent: options?.agent,
+      credentials: options?.credentials,
+      redirect: options?.redirect,
+      referrer: options?.referrer,
+      referrerPolicy: options?.referrerPolicy,
+      method: options?.method, 
+      mode: options?.mode, 
+      headers: options?.headers,
+    }
+    
     this._timeoutDuration =
       typeof options?.timeoutDuration === 'number' ? options?.timeoutDuration : 5000
     this._cooldownDuration =
